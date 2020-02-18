@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -65,6 +66,9 @@ var fourInt = big.NewInt(4)
 var fiveInt = big.NewInt(5)
 var tenInt = big.NewInt(10)
 var twentyInt = big.NewInt(20)
+
+var stringType = reflect.TypeOf("")
+var bytesType = reflect.TypeOf([]byte{})
 
 // Decimal represents a fixed-point decimal. It is immutable.
 // number = value * 10 ^ exp
@@ -1206,6 +1210,15 @@ func unquoteIfQuoted(value interface{}) (string, error) {
 	case []byte:
 		bytes = v
 	default:
+		if value != nil {
+			rv := reflect.ValueOf(value)
+			if rv.Type().ConvertibleTo(stringType) {
+				return unquoteIfQuoted(rv.Convert(stringType).String())
+			}
+			if rv.Type().ConvertibleTo(bytesType) {
+				return unquoteIfQuoted(rv.Convert(bytesType).Bytes())
+			}
+		}
 		return "", fmt.Errorf("Could not convert value '%+v' to byte array of type '%T'",
 			value, value)
 	}

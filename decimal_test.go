@@ -1883,11 +1883,45 @@ func TestDecimal_Scan(t *testing.T) {
 		}
 	}
 
+	// in case use redefine string type
+	type anotherstring string
+	valueStrCustom := anotherstring(valueStr)
+	err = a.Scan(valueStrCustom)
+	if err != nil {
+		// Scan failed... no need to test result value
+		t.Errorf("a.Scan('535.666') failed with message: %s", err)
+	} else {
+		// Scan succeeded... test resulting values
+		if !a.Equal(expected) {
+			t.Errorf("%s does not equal to %s", a, expected)
+		}
+	}
+
+	// in case use redefine []byte type
+	type anotherbytes []byte
+	dbvalueStrCustom := anotherbytes(dbvalueStr)
+	err = a.Scan(dbvalueStrCustom)
+	if err != nil {
+		// Scan failed... no need to test result value
+		t.Errorf("a.Scan('535.666') failed with message: %s", err)
+	} else {
+		// Scan succeeded... test resulting values
+		if !a.Equal(expected) {
+			t.Errorf("%s does not equal to %s", a, expected)
+		}
+	}
+
 	type foo struct{}
 	err = a.Scan(foo{})
 	if err == nil {
 		t.Errorf("a.Scan(Foo{}) should have thrown an error but did not")
 	}
+
+	err = a.Scan(nil)
+	if err == nil {
+		t.Errorf("a.Scan(nil) should have thrown an error but did not")
+	}
+	t.Logf("%+v", err)
 }
 
 func TestDecimal_Value(t *testing.T) {
